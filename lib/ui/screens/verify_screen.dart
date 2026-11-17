@@ -115,9 +115,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
                       height: 68,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(22),
-                        gradient: AppColors.accentWarm,
+                        gradient: AppColors.warm,
                         boxShadow: [
-                          BoxShadow(color: AppColors.pink.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))
+                          BoxShadow(color: AppColors.purple.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))
                         ],
                       ),
                       child: const Icon(Icons.mark_email_unread_rounded, color: Colors.white, size: 34),
@@ -131,7 +131,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                       const TextSpan(text: 'Enter the 6-digit code we sent to\n'),
                       TextSpan(
                         text: widget.email,
-                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
+                        style: TextStyle(color: context.palette.textPrimary, fontWeight: FontWeight.w700),
                       ),
                     ]),
                     style: t.bodyMedium,
@@ -146,7 +146,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                         _verify();
                       },
                       child: Row(children: [
-                        const Icon(Icons.science_rounded, color: AppColors.amber),
+                        const Icon(Icons.science_rounded, color: AppColors.warning),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text.rich(TextSpan(children: [
@@ -154,11 +154,11 @@ class _VerifyScreenState extends State<VerifyScreen> {
                             TextSpan(
                               text: demoCode,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w800, letterSpacing: 3, color: AppColors.amber),
+                                  fontWeight: FontWeight.w800, letterSpacing: 3, color: AppColors.warning),
                             ),
                           ])),
                         ),
-                        const Text('Tap to use', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        Text('Tap to use', style: TextStyle(color: context.palette.textSecondary, fontSize: 12)),
                       ]),
                     ),
                   ],
@@ -182,9 +182,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 18),
+                                const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
                                 const SizedBox(width: 8),
-                                Flexible(child: Text(_error!, style: const TextStyle(color: AppColors.danger))),
+                                Flexible(child: Text(_error!, style: const TextStyle(color: AppColors.error))),
                               ],
                             ),
                           ),
@@ -203,15 +203,15 @@ class _VerifyScreenState extends State<VerifyScreen> {
                       icon: const Icon(Icons.refresh_rounded, size: 18),
                       label: Text(_cooldown > 0 ? 'Resend code in ${_cooldown}s' : 'Resend code'),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.cyan,
-                        disabledForegroundColor: AppColors.textSecondary,
+                        foregroundColor: context.palette.bubbleSent,
+                        disabledForegroundColor: context.palette.textSecondary,
                       ),
                     ),
                   ),
-                  const Center(
+                  Center(
                     child: Text(
                       "Didn't get it? Check your spam folder.",
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                      style: TextStyle(color: context.palette.textSecondary, fontSize: 12.5),
                     ),
                   ),
                 ],
@@ -272,10 +272,12 @@ class _CodeInput extends StatelessWidget {
                   final filled = i < text.length;
                   final active = focusNode.hasFocus && i == text.length.clamp(0, AppConfig.codeLength - 1);
                   final borderColor = hasError
-                      ? AppColors.danger
+                      ? AppColors.error
                       : active
-                          ? AppColors.cyan
-                          : Colors.white.withValues(alpha: filled ? 0.35 : 0.16);
+                          ? AppColors.sky
+                          : filled
+                              ? AppColors.indigo.withValues(alpha: 0.45)
+                              : context.palette.glassBorder;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     width: 50,
@@ -286,19 +288,19 @@ class _CodeInput extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.white.withValues(alpha: filled ? 0.18 : 0.10),
-                          Colors.white.withValues(alpha: 0.03),
+                          context.palette.glassTop,
+                          filled ? context.palette.bubbleReceived.withValues(alpha: 0.6) : context.palette.glassBottom,
                         ],
                       ),
                       border: Border.all(color: borderColor, width: active ? 2 : 1.2),
                       boxShadow: active
-                          ? [BoxShadow(color: AppColors.cyan.withValues(alpha: 0.35), blurRadius: 16)]
+                          ? [BoxShadow(color: AppColors.sky.withValues(alpha: 0.35), blurRadius: 16)]
                           : null,
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       filled ? text[i] : '',
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: context.palette.textPrimary),
                     ),
                   );
                 }),

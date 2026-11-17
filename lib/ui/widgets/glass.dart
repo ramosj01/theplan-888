@@ -2,10 +2,12 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 
-/// Deep gradient backdrop with slowly drifting, blurred colour orbs.
+/// Gradient backdrop with slowly drifting, blurred brand-colour orbs. Also
+/// sets the status bar icon brightness for the active mode.
 class GlossyBackground extends StatefulWidget {
   final Widget child;
   const GlossyBackground({super.key, required this.child});
@@ -24,102 +26,119 @@ class _GlossyBackgroundState extends State<GlossyBackground> with SingleTickerPr
     super.dispose();
   }
 
-  Widget _orb(Color color, double size) => Container(
+  Widget _orb(Color color, double size, double opacity) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color.withValues(alpha: 0.55), color.withValues(alpha: 0)]),
+          gradient: RadialGradient(colors: [color.withValues(alpha: opacity), color.withValues(alpha: 0)]),
         ),
       );
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(gradient: AppColors.background),
-      child: Stack(
-        children: [
-          AnimatedBuilder(
-            animation: _c,
-            builder: (context, _) {
-              final t = _c.value * 2 * math.pi;
-              final size = MediaQuery.sizeOf(context);
-              return Stack(children: [
-                Positioned(
-                  left: -120 + 40 * math.sin(t),
-                  top: -80 + 30 * math.cos(t),
-                  child: _orb(AppColors.violet, 420),
-                ),
-                Positioned(
-                  right: -140 + 50 * math.cos(t),
-                  top: size.height * 0.35 + 40 * math.sin(t),
-                  child: _orb(AppColors.cyan, 380),
-                ),
-                Positioned(
-                  left: size.width * 0.1 + 30 * math.cos(t * 2),
-                  bottom: -160 + 40 * math.sin(t),
-                  child: _orb(AppColors.pink, 360),
-                ),
-              ]);
-            },
-          ),
-          Positioned.fill(child: widget.child),
-        ],
+    final p = context.palette;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: (p.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: p.background,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(gradient: p.backgroundGradient),
+        child: Stack(
+          children: [
+            AnimatedBuilder(
+              animation: _c,
+              builder: (context, _) {
+                final t = _c.value * 2 * math.pi;
+                final size = MediaQuery.sizeOf(context);
+                final o = p.orbOpacity;
+                return Stack(children: [
+                  Positioned(
+                    left: -120 + 40 * math.sin(t),
+                    top: -80 + 30 * math.cos(t),
+                    child: _orb(AppColors.indigo, 420, o),
+                  ),
+                  Positioned(
+                    right: -140 + 50 * math.cos(t),
+                    top: size.height * 0.35 + 40 * math.sin(t),
+                    child: _orb(AppColors.sky, 380, o * 0.9),
+                  ),
+                  Positioned(
+                    left: size.width * 0.1 + 30 * math.cos(t * 2),
+                    bottom: -160 + 40 * math.sin(t),
+                    child: _orb(AppColors.violet, 360, o),
+                  ),
+                ]);
+              },
+            ),
+            Positioned.fill(child: widget.child),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Frosted-glass panel with a subtle top highlight.
+/// Frosted-glass panel.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
   final double blur;
-  final double opacity;
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
+
+  /// Optional solid fill (e.g. chat bubble colour) instead of the glass tint.
+  final Color? color;
 
   const GlassCard({
     super.key,
     required this.child,
-    this.borderRadius,
     this.padding = const EdgeInsets.all(20),
     this.radius = 24,
     this.blur = 18,
-    this.opacity = 0.08,
     this.onTap,
+    this.borderRadius,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     final br = borderRadius ?? BorderRadius.circular(radius);
-    return ClipRRect(
-      borderRadius: br,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: br,
-            splashColor: Colors.white10,
-            highlightColor: Colors.white.withValues(alpha: 0.04),
-            child: Container(
-              padding: padding,
-              decoration: BoxDecoration(
-                borderRadius: br,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withValues(alpha: opacity + 0.06),
-                    Colors.white.withValues(alpha: opacity * 0.4),
-                  ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: br,
+        boxShadow: [BoxShadow(color: p.glassShadow, blurRadius: 24, offset: const Offset(0, 8))],
+      ),
+      child: ClipRRect(
+        borderRadius: br,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: br,
+              splashColor: AppColors.indigo.withValues(alpha: 0.08),
+              highlightColor: AppColors.indigo.withValues(alpha: 0.04),
+              child: Container(
+                padding: padding,
+                decoration: BoxDecoration(
+                  borderRadius: br,
+                  color: color,
+                  gradient: color != null
+                      ? null
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [p.glassTop, p.glassBottom],
+                        ),
+                  border: Border.all(color: p.glassBorder, width: 1),
                 ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 1),
+                child: child,
               ),
-              child: child,
             ),
           ),
         ),
@@ -128,7 +147,7 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Pill button with gradient fill, glassy sheen and soft glow.
+/// Pill button with gradient fill, glossy sheen and soft glow.
 class GlossyButton extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -150,9 +169,10 @@ class GlossyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !loading;
+    final glow = gradient.colors.first;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
-      opacity: enabled ? 1 : 0.55,
+      opacity: enabled ? 1 : 0.5,
       child: Container(
         height: height,
         decoration: BoxDecoration(
@@ -160,8 +180,8 @@ class GlossyButton extends StatelessWidget {
           gradient: gradient,
           boxShadow: [
             BoxShadow(
-              color: AppColors.violet.withValues(alpha: enabled ? 0.45 : 0.15),
-              blurRadius: 24,
+              color: glow.withValues(alpha: enabled ? 0.38 : 0.12),
+              blurRadius: 22,
               offset: const Offset(0, 10),
             ),
           ],
@@ -173,7 +193,6 @@ class GlossyButton extends StatelessWidget {
             onTap: enabled ? onPressed : null,
             child: Stack(
               children: [
-                // Glossy sheen across the top half.
                 Positioned(
                   left: 0,
                   right: 0,
@@ -185,7 +204,7 @@ class GlossyButton extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.white.withValues(alpha: 0.35), Colors.white.withValues(alpha: 0.02)],
+                        colors: [Colors.white.withValues(alpha: 0.28), Colors.white.withValues(alpha: 0.0)],
                       ),
                     ),
                   ),
@@ -225,6 +244,43 @@ class GlossyButton extends StatelessWidget {
   }
 }
 
+/// Outlined pill button (the "Call" style from the NEXA kit).
+class OutlineGlossyButton extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback? onPressed;
+  final Color? color;
+  final double height;
+
+  const OutlineGlossyButton({
+    super.key,
+    required this.label,
+    this.icon,
+    this.onPressed,
+    this.color,
+    this.height = 56,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? context.palette.bubbleSent;
+    return SizedBox(
+      height: height,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon == null ? const SizedBox.shrink() : Icon(icon, size: 20),
+        label: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: c,
+          backgroundColor: c.withValues(alpha: 0.06),
+          side: BorderSide(color: c, width: 1.5),
+          shape: const StadiumBorder(),
+        ),
+      ),
+    );
+  }
+}
+
 /// Round frosted icon button.
 class GlassIconButton extends StatelessWidget {
   final IconData icon;
@@ -244,10 +300,14 @@ class GlassIconButton extends StatelessWidget {
         padding: EdgeInsets.zero,
         radius: size / 2,
         onTap: onPressed,
-        child: Center(child: Icon(icon, size: size * 0.48, color: color ?? AppColors.textPrimary)),
+        child: Center(child: Icon(icon, size: size * 0.48, color: color ?? context.palette.textPrimary)),
       ),
     );
-    return tooltip == null ? btn : Tooltip(message: tooltip!, child: btn);
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: tooltip == null ? btn : Tooltip(message: tooltip!, child: btn),
+    );
   }
 }
 
@@ -282,6 +342,7 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
       radius: 20,
@@ -306,11 +367,10 @@ class GlassTextField extends StatelessWidget {
               maxLines: maxLines,
               minLines: 1,
               autofillHints: autofillHints,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
-              cursorColor: AppColors.cyan,
+              style: TextStyle(color: p.textPrimary, fontSize: 16),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.7)),
+                hintStyle: TextStyle(color: p.textSecondary.withValues(alpha: 0.8)),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -337,7 +397,7 @@ class GradientText extends StatelessWidget {
       );
 }
 
-/// Glossy app mark: a chat bubble with a lock.
+/// Glossy app mark: a chat bubble with a lock, in the NEXA logo gradient.
 class AppLogo extends StatelessWidget {
   final double size;
   const AppLogo({super.key, this.size = 96});
@@ -349,13 +409,10 @@ class AppLogo extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(size * 0.3),
-        gradient: const LinearGradient(
-          colors: [AppColors.pink, AppColors.violet, AppColors.cyan],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.logo,
         boxShadow: [
-          BoxShadow(color: AppColors.violet.withValues(alpha: 0.6), blurRadius: size * 0.4, offset: Offset(0, size * 0.12)),
+          BoxShadow(
+              color: AppColors.indigo.withValues(alpha: 0.45), blurRadius: size * 0.4, offset: Offset(0, size * 0.12)),
         ],
       ),
       child: Stack(
@@ -371,7 +428,7 @@ class AppLogo extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.white.withValues(alpha: 0.45), Colors.white.withValues(alpha: 0.0)],
+                  colors: [Colors.white.withValues(alpha: 0.4), Colors.white.withValues(alpha: 0.0)],
                 ),
               ),
             ),
@@ -380,7 +437,7 @@ class AppLogo extends StatelessWidget {
           Center(
             child: Padding(
               padding: EdgeInsets.only(bottom: size * 0.06),
-              child: Icon(Icons.lock_rounded, color: AppColors.violet, size: size * 0.26),
+              child: Icon(Icons.lock_rounded, color: AppColors.indigo, size: size * 0.26),
             ),
           ),
         ],
@@ -399,10 +456,12 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Darken the text slightly in light mode for contrast on pale fills.
+    final fg = context.palette.isDark ? color : Color.lerp(color, Colors.black, 0.22)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
@@ -410,12 +469,29 @@ class StatusPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           pulsing
-              ? SizedBox(width: 11, height: 11, child: CircularProgressIndicator(strokeWidth: 1.6, color: color))
-              : Icon(icon, size: 12, color: color),
+              ? SizedBox(width: 11, height: 11, child: CircularProgressIndicator(strokeWidth: 1.6, color: fg))
+              : Icon(icon, size: 12, color: fg),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w600)),
+          Text(label, style: TextStyle(color: fg, fontSize: 11.5, fontWeight: FontWeight.w600)),
         ],
       ),
+    );
+  }
+}
+
+/// Light / dark toggle as a frosted icon button.
+class ThemeToggleButton extends StatelessWidget {
+  final ThemeController controller;
+  const ThemeToggleButton({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.palette.isDark;
+    return GlassIconButton(
+      icon: dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+      tooltip: dark ? 'Switch to light mode' : 'Switch to dark mode',
+      color: dark ? AppColors.warning : AppColors.indigo,
+      onPressed: () => controller.toggle(Theme.of(context).brightness),
     );
   }
 }

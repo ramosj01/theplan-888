@@ -72,12 +72,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Hi, ${c.user.name} 👋',
-                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                                  style: TextStyle(color: context.palette.textSecondary, fontSize: 14)),
                               const SizedBox(height: 2),
                               GradientText('Chats', style: Theme.of(context).textTheme.headlineLarge),
                             ],
                           ),
                         ),
+                        ThemeToggleButton(controller: context.watch<ThemeController>()),
+                        const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () => Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => ChangeNotifierProvider.value(value: c, child: const SettingsScreen()),
@@ -102,13 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       const StatusPill(
                         label: 'End-to-end encrypted',
                         icon: Icons.lock_rounded,
-                        color: AppColors.mint,
+                        color: AppColors.success,
                       ),
                       const SizedBox(width: 8),
                       StatusPill(
                         label: '${c.contacts.where((p) => c.online.contains(p.id)).length} online',
                         icon: Icons.circle,
-                        color: AppColors.cyan,
+                        color: AppColors.sky,
                       ),
                     ]),
                   ),
@@ -163,22 +165,22 @@ class _ChatTile extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          color: AppColors.danger.withValues(alpha: 0.25),
+          color: AppColors.error.withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(24),
         ),
-        child: const Icon(Icons.delete_rounded, color: AppColors.danger),
+        child: const Icon(Icons.delete_rounded, color: AppColors.error),
       ),
       confirmDismiss: (_) => showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.bgMid,
+          backgroundColor: context.palette.background,
           title: Text('Remove ${peer.name}?'),
           content: const Text('The conversation is deleted from this device.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Remove', style: TextStyle(color: AppColors.danger)),
+              child: const Text('Remove', style: TextStyle(color: AppColors.error)),
             ),
           ],
         ),
@@ -204,7 +206,7 @@ class _ChatTile extends StatelessWidget {
                     ),
                     if (link == LinkState.secure) ...[
                       const SizedBox(width: 6),
-                      const Icon(Icons.lock_rounded, size: 14, color: AppColors.mint),
+                      const Icon(Icons.lock_rounded, size: 14, color: AppColors.success),
                     ],
                   ]),
                   const SizedBox(height: 4),
@@ -217,7 +219,7 @@ class _ChatTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: typing ? AppColors.cyan : AppColors.textSecondary,
+                      color: typing ? context.palette.bubbleSent : context.palette.textSecondary,
                       fontStyle: typing ? FontStyle.italic : FontStyle.normal,
                       fontSize: 14,
                     ),
@@ -233,7 +235,7 @@ class _ChatTile extends StatelessWidget {
                   last == null ? '' : formatListTime(last.timestamp),
                   style: TextStyle(
                     fontSize: 12,
-                    color: unread > 0 ? AppColors.cyan : AppColors.textSecondary,
+                    color: unread > 0 ? context.palette.bubbleSent : context.palette.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -243,7 +245,7 @@ class _ChatTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: AppColors.accent,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: AppColors.cyan.withValues(alpha: 0.5), blurRadius: 8)],
+                      boxShadow: [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.4), blurRadius: 8)],
                     ),
                     child: Text('$unread',
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
@@ -273,7 +275,7 @@ class _EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(searching ? Icons.search_off_rounded : Icons.forum_rounded,
-                size: 72, color: Colors.white.withValues(alpha: 0.25)),
+                size: 72, color: context.palette.textSecondary.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text(searching ? 'No matches' : 'No conversations yet',
                 style: Theme.of(context).textTheme.titleLarge),
@@ -339,7 +341,6 @@ class _NewChatSheetState extends State<_NewChatSheet> {
       child: GlassCard(
         radius: 32,
         blur: 30,
-        opacity: 0.12,
         padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
         child: SafeArea(
           top: false,
@@ -351,15 +352,15 @@ class _NewChatSheetState extends State<_NewChatSheet> {
                 child: Container(
                   width: 44,
                   height: 5,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(3)),
+                  decoration: BoxDecoration(color: context.palette.divider, borderRadius: BorderRadius.circular(3)),
                 ),
               ),
               const SizedBox(height: 20),
               Text('Start a secure chat', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Enter the email your contact registered with. You will connect directly, device to device.',
-                style: TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: context.palette.textSecondary),
               ),
               const SizedBox(height: 20),
               GlassTextField(
@@ -373,7 +374,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 10, left: 4),
-                  child: Text(_error!, style: const TextStyle(color: AppColors.danger)),
+                  child: Text(_error!, style: const TextStyle(color: AppColors.error)),
                 ),
               if (c.backend.demo) ...[
                 const SizedBox(height: 14),
@@ -381,9 +382,9 @@ class _NewChatSheetState extends State<_NewChatSheet> {
                   spacing: 8,
                   children: ['aurora@cipherly.demo', 'milo@cipherly.demo', 'nova@cipherly.demo']
                       .map((e) => ActionChip(
-                            label: Text(e, style: const TextStyle(fontSize: 12)),
-                            backgroundColor: Colors.white.withValues(alpha: 0.08),
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                            label: Text(e, style: TextStyle(fontSize: 12, color: context.palette.textPrimary)),
+                            backgroundColor: context.palette.bubbleReceived.withValues(alpha: 0.6),
+                            side: BorderSide(color: context.palette.glassBorder),
                             onPressed: () => _email.text = e,
                           ))
                       .toList(),

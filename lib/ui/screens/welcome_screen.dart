@@ -60,7 +60,7 @@ class WelcomeScreen extends StatelessWidget {
                       child: StatusPill(
                         label: 'Demo mode - no backend configured',
                         icon: Icons.science_rounded,
-                        color: AppColors.amber,
+                        color: AppColors.warning,
                       ),
                     ),
                 ],
@@ -101,7 +101,7 @@ class _Feature extends StatelessWidget {
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 3),
-                Text(body, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.35)),
+                Text(body, style: TextStyle(color: context.palette.textSecondary, fontSize: 13.5, height: 1.35)),
               ],
             ),
           ),

@@ -63,7 +63,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: StatusPill(
                       label: 'Email verified',
                       icon: Icons.verified_rounded,
-                      color: AppColors.mint,
+                      color: AppColors.success,
                     ),
                   ),
                   const SizedBox(height: 28),

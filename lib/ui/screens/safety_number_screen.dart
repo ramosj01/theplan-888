@@ -66,7 +66,7 @@ class SafetyNumberScreen extends StatelessWidget {
                         child: data == null
                             ? const SizedBox(
                                 height: 140,
-                                child: Center(child: CircularProgressIndicator(color: AppColors.cyan)),
+                                child: Center(child: CircularProgressIndicator(color: AppColors.sky)),
                               )
                             : Column(children: [
                                 GridView.count(
@@ -98,7 +98,7 @@ class SafetyNumberScreen extends StatelessWidget {
                                   },
                                   icon: const Icon(Icons.copy_rounded, size: 18),
                                   label: const Text('Copy'),
-                                  style: TextButton.styleFrom(foregroundColor: AppColors.cyan),
+                                  style: TextButton.styleFrom(foregroundColor: context.palette.bubbleSent),
                                 ),
                               ]),
                       ),
@@ -109,15 +109,15 @@ class SafetyNumberScreen extends StatelessWidget {
                         _KeyRow(label: "${peer.name}'s key", value: data[2]),
                       ],
                       const SizedBox(height: 20),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textSecondary),
+                          Icon(Icons.info_outline_rounded, size: 16, color: context.palette.textSecondary),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Each session also uses fresh ephemeral keys, so past messages stay '
                               'private even if a device is later compromised.',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                              style: TextStyle(color: context.palette.textSecondary, fontSize: 12.5),
                             ),
                           ),
                         ],
@@ -150,7 +150,7 @@ class _KeyRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text(label, style: TextStyle(color: context.palette.textSecondary, fontSize: 12)),
                   const SizedBox(height: 2),
                   Text(value, style: const TextStyle(fontFamily: 'monospace', fontSize: 12.5)),
                 ],

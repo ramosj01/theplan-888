@@ -137,17 +137,17 @@ class _Header extends StatelessWidget {
 
     final Widget pill = switch (state) {
       LinkState.secure =>
-        const StatusPill(label: 'Encrypted · P2P', icon: Icons.lock_rounded, color: AppColors.mint),
+        const StatusPill(label: 'Encrypted · P2P', icon: Icons.lock_rounded, color: AppColors.success),
       LinkState.connecting =>
-        const StatusPill(label: 'Connecting...', icon: Icons.sync, color: AppColors.cyan, pulsing: true),
+        const StatusPill(label: 'Connecting...', icon: Icons.sync, color: AppColors.sky, pulsing: true),
       LinkState.handshaking =>
         const StatusPill(label: 'Exchanging keys...', icon: Icons.key, color: AppColors.violet, pulsing: true),
       LinkState.failed =>
-        const StatusPill(label: 'Unreachable · tap to retry', icon: Icons.error_outline, color: AppColors.danger),
+        const StatusPill(label: 'Unreachable · tap to retry', icon: Icons.error_outline, color: AppColors.error),
       LinkState.offline => StatusPill(
           label: online ? 'Online · tap to connect' : 'Offline',
           icon: Icons.circle,
-          color: online ? AppColors.cyan : AppColors.textSecondary),
+          color: online ? AppColors.sky : context.palette.textSecondary),
     };
 
     return Padding(
@@ -185,7 +185,7 @@ class _Header extends StatelessWidget {
             GlassIconButton(
               icon: Icons.verified_user_rounded,
               tooltip: 'Verify safety number',
-              color: AppColors.mint,
+              color: AppColors.success,
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => ChangeNotifierProvider.value(value: c, child: SafetyNumberScreen(peerId: peer.id)),
               )),
@@ -202,24 +202,26 @@ class _EncryptionNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Amber-700 in light mode keeps the notice readable on pale backgrounds.
+    final fg = context.palette.isDark ? AppColors.warning : const Color(0xFFB45309);
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 12, 28, 16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.amber.withValues(alpha: 0.10),
+          color: AppColors.warning.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.amber.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.lock_rounded, size: 16, color: AppColors.amber),
-            SizedBox(width: 10),
+            Icon(Icons.lock_rounded, size: 16, color: fg),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Messages travel directly between your devices and are end-to-end encrypted. '
                 'No server can read or store them.',
-                style: TextStyle(color: AppColors.amber, fontSize: 12.5, height: 1.35),
+                style: TextStyle(color: fg, fontSize: 12.5, height: 1.35),
               ),
             ),
           ],
@@ -239,10 +241,11 @@ class _DayChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: context.palette.glassTop,
+            border: Border.all(color: context.palette.glassBorder),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          child: Text(label, style: TextStyle(fontSize: 12, color: context.palette.textSecondary)),
         ),
       );
 }
@@ -255,6 +258,7 @@ class _Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final out = message.outgoing;
+    final p = context.palette;
     final r = const Radius.circular(22);
     final tail = const Radius.circular(6);
     final radius = BorderRadius.only(
@@ -269,20 +273,20 @@ class _Bubble extends StatelessWidget {
       MessageStatus.sending => const Icon(Icons.schedule_rounded, size: 13, color: Colors.white70),
       MessageStatus.sent => const Icon(Icons.done_rounded, size: 14, color: Colors.white70),
       MessageStatus.delivered => const Icon(Icons.done_all_rounded, size: 14, color: Color(0xFFB8F7FF)),
-      MessageStatus.failed => const Icon(Icons.error_rounded, size: 14, color: AppColors.danger),
+      MessageStatus.failed => const Icon(Icons.error_rounded, size: 14, color: AppColors.error),
     };
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(message.text, style: const TextStyle(color: Colors.white, fontSize: 15.5, height: 1.35)),
+        Text(message.text, style: TextStyle(color: out ? Colors.white : p.textPrimary, fontSize: 15.5, height: 1.35)),
         const SizedBox(height: 4),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(formatClock(message.timestamp),
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+                style: TextStyle(color: out ? Colors.white.withValues(alpha: 0.75) : p.textSecondary, fontSize: 11)),
             if (out) ...[const SizedBox(width: 4), statusIcon],
           ],
         ),
@@ -293,13 +297,9 @@ class _Bubble extends StatelessWidget {
         ? Container(
             decoration: BoxDecoration(
               borderRadius: radius,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: p.sentBubbleGradient,
               boxShadow: [
-                BoxShadow(color: AppColors.violet.withValues(alpha: 0.35), blurRadius: 14, offset: const Offset(0, 6)),
+                BoxShadow(color: p.bubbleSent.withValues(alpha: 0.32), blurRadius: 14, offset: const Offset(0, 6)),
               ],
             ),
             child: Stack(children: [
@@ -325,7 +325,7 @@ class _Bubble extends StatelessWidget {
         : GlassCard(
             borderRadius: radius,
             blur: 12,
-            opacity: 0.10,
+            color: p.bubbleReceived,
             padding: const EdgeInsets.fromLTRB(16, 11, 14, 8),
             child: content,
           );
@@ -398,7 +398,7 @@ class _TypingBubbleState extends State<_TypingBubble> with SingleTickerProviderS
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color.lerp(AppColors.textSecondary, AppColors.cyan, lift),
+                    color: Color.lerp(context.palette.textSecondary, AppColors.sky, lift),
                   ),
                 );
               }),
@@ -456,12 +456,12 @@ class _Composer extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: canSend
                       ? AppColors.accent
-                      : LinearGradient(colors: [Colors.white.withValues(alpha: 0.15), Colors.white.withValues(alpha: 0.08)]),
+                      : LinearGradient(colors: [context.palette.divider, context.palette.divider]),
                   boxShadow: canSend
-                      ? [BoxShadow(color: AppColors.cyan.withValues(alpha: 0.5), blurRadius: 18, offset: const Offset(0, 6))]
+                      ? [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.4), blurRadius: 18, offset: const Offset(0, 6))]
                       : null,
                 ),
-                child: const Icon(Icons.send_rounded, color: Colors.white),
+                child: Icon(Icons.send_rounded, color: canSend ? Colors.white : context.palette.textSecondary),
               ),
             ),
           ),

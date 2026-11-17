@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config.dart';
 import 'models/models.dart';
@@ -14,28 +15,46 @@ import 'ui/widgets/glass.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.bgTop,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
   final backend = await Backend.create();
-  runApp(CipherlyApp(backend: backend));
+  final theme = await _loadThemeController();
+  runApp(CipherlyApp(backend: backend, theme: theme));
+}
+
+const _themeKey = 'ui.theme_mode';
+
+Future<ThemeController> _loadThemeController() async {
+  SharedPreferences? prefs;
+  try {
+    prefs = await SharedPreferences.getInstance();
+  } catch (_) {}
+  final saved = prefs?.getString(_themeKey);
+  final mode = ThemeMode.values.where((m) => m.name == saved).firstOrNull ?? ThemeMode.system;
+  return ThemeController(mode, (m) async => prefs?.setString(_themeKey, m.name));
 }
 
 class CipherlyApp extends StatelessWidget {
   final Backend backend;
-  const CipherlyApp({super.key, required this.backend});
+  final ThemeController theme;
+  const CipherlyApp({super.key, required this.backend, required this.theme});
 
   @override
   Widget build(BuildContext context) {
-    return Provider<Backend>.value(
-      value: backend,
-      child: MaterialApp(
-        title: AppConfig.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        home: const AuthGate(),
+    return MultiProvider(
+      providers: [
+        Provider<Backend>.value(value: backend),
+        ChangeNotifierProvider<ThemeController>.value(value: theme),
+      ],
+      child: Consumer<ThemeController>(
+        builder: (context, t, _) => MaterialApp(
+          title: AppConfig.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: t.mode,
+          themeAnimationDuration: const Duration(milliseconds: 350),
+          home: const AuthGate(),
+        ),
       ),
     );
   }
@@ -101,7 +120,7 @@ class _SessionScopeState extends State<SessionScope> {
             ? const HomeScreen()
             : const Scaffold(
                 body: GlossyBackground(
-                  child: Center(child: CircularProgressIndicator(color: AppColors.cyan)),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.indigo)),
                 ),
               ),
       ),

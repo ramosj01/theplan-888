@@ -38,13 +38,15 @@ class SettingsScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(c.user.name, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 4),
-                        Text(c.user.email, style: const TextStyle(color: AppColors.textSecondary)),
+                        Text(c.user.email, style: TextStyle(color: context.palette.textSecondary)),
                         const SizedBox(height: 12),
-                        const StatusPill(label: 'Email verified', icon: Icons.verified_rounded, color: AppColors.mint),
+                        const StatusPill(label: 'Email verified', icon: Icons.verified_rounded, color: AppColors.success),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
+                  const _AppearancePicker(),
+                  const SizedBox(height: 10),
                   FutureBuilder(
                     future: c.myFingerprint(),
                     builder: (context, s) => _Tile(
@@ -78,16 +80,16 @@ class SettingsScreen extends StatelessWidget {
                   GlossyButton(
                     label: 'Sign out',
                     icon: Icons.logout_rounded,
-                    gradient: const LinearGradient(colors: [AppColors.danger, AppColors.pink]),
+                    gradient: AppColors.danger,
                     onPressed: () async {
                       Navigator.of(context).popUntil((r) => r.isFirst);
                       await c.backend.auth.signOut();
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Center(
+                  Center(
                     child: Text('${AppConfig.appName} 1.0.0',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        style: TextStyle(color: context.palette.textSecondary, fontSize: 12)),
                   ),
                 ],
               ),
@@ -126,7 +128,7 @@ class _Tile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(subtitle,
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: context.palette.textSecondary,
                         fontSize: 12.5,
                         fontFamily: mono ? 'monospace' : null,
                       )),
@@ -136,4 +138,87 @@ class _Tile extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// System / Light / Dark segmented control.
+class _AppearancePicker extends StatelessWidget {
+  const _AppearancePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeController>();
+    final p = context.palette;
+    const options = [
+      (ThemeMode.system, Icons.brightness_auto_rounded, 'System'),
+      (ThemeMode.light, Icons.light_mode_rounded, 'Light'),
+      (ThemeMode.dark, Icons.dark_mode_rounded, 'Dark'),
+    ];
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: AppColors.warm),
+              child: const Icon(Icons.palette_rounded, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 14),
+            const Text('Appearance', style: TextStyle(fontWeight: FontWeight.w700)),
+          ]),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: p.isDark ? p.background.withValues(alpha: 0.5) : p.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: p.divider),
+            ),
+            child: Row(
+              children: [
+                for (final (mode, icon, label) in options)
+                  Expanded(
+                    child: Semantics(
+                      button: true,
+                      selected: theme.mode == mode,
+                      label: '$label theme',
+                      child: GestureDetector(
+                        onTap: () => theme.mode = mode,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: theme.mode == mode ? AppColors.accent : null,
+                            boxShadow: theme.mode == mode
+                                ? [BoxShadow(color: AppColors.indigo.withValues(alpha: 0.3), blurRadius: 10)]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(icon, size: 18, color: theme.mode == mode ? Colors.white : p.textSecondary),
+                              const SizedBox(width: 6),
+                              Text(
+                                label,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.mode == mode ? Colors.white : p.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -71,10 +71,10 @@ class GlossyAvatar extends StatelessWidget {
                 height: size * 0.28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: online! ? AppColors.mint : const Color(0xFF5B6085),
-                  border: Border.all(color: AppColors.bgMid, width: 2.5),
+                  color: online! ? AppColors.success : context.palette.textSecondary,
+                  border: Border.all(color: context.palette.background, width: 2.5),
                   boxShadow: online!
-                      ? [BoxShadow(color: AppColors.mint.withValues(alpha: 0.7), blurRadius: 8)]
+                      ? [BoxShadow(color: AppColors.success.withValues(alpha: 0.7), blurRadius: 8)]
                       : null,
                 ),
               ),

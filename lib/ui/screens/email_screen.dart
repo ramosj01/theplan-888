@@ -101,10 +101,10 @@ class _EmailScreenState extends State<EmailScreen> {
                         : Padding(
                             padding: const EdgeInsets.only(top: 12, left: 6),
                             child: Row(children: [
-                              const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 18),
+                              const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text(_error!, style: const TextStyle(color: AppColors.danger)),
+                                child: Text(_error!, style: const TextStyle(color: AppColors.error)),
                               ),
                             ]),
                           ),
@@ -120,13 +120,13 @@ class _EmailScreenState extends State<EmailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.shield_moon_rounded, size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.shield_moon_rounded, size: 16, color: context.palette.textSecondary),
                       const SizedBox(width: 6),
                       Text(
                         AppConfig.demoMode
                             ? 'Demo mode: the code will be shown on screen'
                             : 'New here? Your account is created automatically.',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        style: TextStyle(color: context.palette.textSecondary, fontSize: 13),
                       ),
                     ],
                   ),
@@ -154,7 +154,7 @@ class _IconBadge extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
           gradient: AppColors.accent,
-          boxShadow: [BoxShadow(color: AppColors.cyan.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))],
+          boxShadow: [BoxShadow(color: AppColors.sky.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))],
         ),
         child: Icon(icon, color: Colors.white, size: 34),
       ),

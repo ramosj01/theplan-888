@@ -2,18 +2,21 @@
 
 Cipherly is a Flutter chat app with end-to-end encryption. Messages go **directly between devices** over WebRTC and are sealed with keys that never leave the device. You sign in with any email address and a one-time verification code. There are no passwords.
 
-![Cipherly screens](docs/screenshots/overview.png)
+| Light mode | Dark mode |
+|---|---|
+| ![Light mode](docs/screenshots/overview-light.png) | ![Dark mode](docs/screenshots/overview-dark.png) |
 
-| Welcome | Email | Verify code | Chats | Chat | Safety number |
+| | Welcome | Verify code | Chats | Chat | Settings |
 |---|---|---|---|---|---|
-| ![](docs/screenshots/01-welcome.png) | ![](docs/screenshots/02-email.png) | ![](docs/screenshots/03-verify-code.png) | ![](docs/screenshots/10-chats-after.png) | ![](docs/screenshots/08-chat.png) | ![](docs/screenshots/09-safety-number.png) |
+| Light | ![](docs/screenshots/light/01-welcome.png) | ![](docs/screenshots/light/03-verify-code.png) | ![](docs/screenshots/light/10-chats-after.png) | ![](docs/screenshots/light/08-chat.png) | ![](docs/screenshots/light/11-settings.png) |
+| Dark | ![](docs/screenshots/dark/01-welcome.png) | ![](docs/screenshots/dark/03-verify-code.png) | ![](docs/screenshots/dark/10-chats-after.png) | ![](docs/screenshots/dark/08-chat.png) | ![](docs/screenshots/dark/11-settings.png) |
 
 ## Features
 
 - **Email registration with verification.** Enter any email address (Gmail, Outlook, iCloud, a work address, and so on). The app sends a 6-digit code to that address, and entering it verifies the address and signs you in. Your account is created the first time you verify.
 - **Peer-to-peer.** Chats run over a WebRTC data channel. The server only helps the two devices find each other (signaling); it never sees or stores messages.
 - **End-to-end encryption.** An authenticated X25519 key exchange creates the session keys and every message is sealed with AES-256-GCM (details below). You can compare a **safety number** with your contact to confirm nobody is intercepting the chat.
-- **Glossy UI.** Glass-style panels, animated gradient backgrounds, gradient message bubbles, a 6-box code input, online indicators, typing indicators, and delivered ticks.
+- **Glossy UI with light and dark themes.** Uses the NEXA palette (see Theming below). Glass-style panels, animated gradient backgrounds, gradient message bubbles, a 6-box code input, online indicators, typing indicators, and delivered ticks. The app follows the system setting by default; you can switch with the sun/moon button on the Chats screen or under **Settings → Appearance** (System / Light / Dark), and the choice is remembered.
 - **Chat history stays on the device** and is encrypted at rest (AES-GCM, with the key kept in the platform keystore).
 - **Demo mode.** With no backend configured, the app still runs: the verification code appears on screen and three demo contacts (Aurora, Milo and Nova) chat back through the real encryption code.
 
@@ -45,6 +48,25 @@ flutter run            # any device, or: flutter run -d chrome
    ```
    Optional: add a TURN server for users behind strict NATs or firewalls:
    `--dart-define=TURN_URL=turn:turn.example.com:3478 --dart-define=TURN_USERNAME=... --dart-define=TURN_CREDENTIAL=...`
+
+## Theming
+
+All colors live in [`lib/ui/theme/app_theme.dart`](lib/ui/theme/app_theme.dart).
+
+- `AppColors` holds the colors shared by both modes: brand (Indigo `#5865F2`, Violet `#8B5CF6`, Sky `#0EA5E9`, Teal `#14B8A6`), status (Success `#22C55E`, Warning `#F59E0B`, Error `#EF4444`, Info `#0EA5E9`, Purple `#A855F7`) and the gradients built from them.
+- `AppPalette` is a `ThemeExtension` with the colors that differ by mode. Widgets read it with `context.palette`:
+
+| Token | Light | Dark |
+|---|---|---|
+| Background | `#FFFFFF` | `#101321` |
+| Surface | `#F5F7FB` | `#1C2030` |
+| Chat bubble (received) | `#E8EDFF` | `#343C70` |
+| Chat bubble (sent) | `#5865F2` | `#6366F1` |
+| Text primary | `#1F2937` | `#F8FAFC` |
+| Text secondary | `#6B7280` | `#94A3B8` |
+| Divider | `#E5E7EB` | `#2A2F45` |
+
+Sent bubbles and primary buttons use an indigo → violet gradient. Warning-colored text uses a darker amber in light mode so it stays readable. `ThemeController` stores the System / Light / Dark choice.
 
 ## How it works
 
@@ -91,6 +113,7 @@ lib/
   ui/                            theme, glass widgets, screens
 supabase/schema.sql              database schema + RLS
 test/secure_channel_test.dart    crypto and channel tests
+test/theme_test.dart             palette values and theme switching
 ```
 
 ## Testing
