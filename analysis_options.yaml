@@ -1,0 +1,15 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+  errors:
+    # Flutter 3.47+ suggests package:material_ui; material.dart is kept for
+    # compatibility with older stable SDKs.
+    deprecated_member_use: ignore
